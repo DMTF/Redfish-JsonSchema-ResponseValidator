@@ -6,7 +6,6 @@ Copyright 2017 Distributed Management Task Force, Inc. All rights reserved.
 
 ***Redfish-JsonSchema-ResponseValidator.py*** is a Python3 utility used to validate any JSON resource against DMTF provided JSON schemas
 
-
 ### To run:
 
 * Run from anywhere which has the proper Python3.4 or later environment,
@@ -62,9 +61,6 @@ NOTE: if -g is specified, input files will be the files
 ```
 
   *  requests   `pip3 install requests`
-
-
----
 
 ## Examples:
 
