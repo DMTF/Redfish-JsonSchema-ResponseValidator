@@ -231,15 +231,15 @@ class ResourceValidate(object):
             if fname == 'index.json':
               fname = dirn + '/' + fname
               print(fname)
-              data = open(fname).read()
-              if self.verbose: print(data)
-              data = json.loads(data)
+              ff = open(fname)
+              if self.verbose: print("reading data")
+              data = json.loads(ff.read())
               if '@odata.type' not in data:
-                if 'redfish/index.json' not in fname:
-                   if 'redfish/v1/odata/index.json' not in fname:
-                      msg = 'ERROR1: Missing @odata.type '
-                      self.errHandle(msg,fname)
-                continue
+                  if 'redfish/index.json' not in fname:
+                      if 'redfish/v1/odata/index.json' not in fname:
+                          msg = 'ERROR1: Missing @odata.type '
+                          self.errHandle(msg,fname)
+                  continue
               schname = self.parseOdataType(data)
               if schname[1]:
                   schname = '.'.join(schname[:2])
@@ -248,30 +248,33 @@ class ResourceValidate(object):
               schname += '.json'
               self.rescount += 1
               self.validate(data,schname,fname)
-
+              del data
 
     def validate(self,data,schname,fname):
         ''' this sample from the jsonschema website
         '''
+        schema=None
         if self.schemaorg:  # get schema from DMT.org
+            print("****GETTING SCHEMA FILE FROM DMTF SITE: {}".format(schname))
             r = requests.get(self.orgurl + schname)
             if r.status_code != 200:
                 print ('SCHEMA GET ERROR', r.status_code)
-                return
-            try:
+                return try:
                 schema = json.loads(r.text)
             except:
                 print('SCHEMA JSON invalid')
                 return
         else:
-            try:
-                f = open(self.schemadir + '/' + schname,'r')
-            except:
+            print("...getting schema file: {} from dir: {}".format(schname,self.schemadir))
+            filenamex = self.schemadir + '/' + schname
+            if os.path.isfile(filenamex):
+                print("...found file")
+                f = open(filenamex)
+                schema = json.loads(f.read()) 
+                f.close() 
+            else:
                 self.errHandle('ERROR2: schema not found',fname,schname)
                 return
-            schema1 = f.read()
-            schema = json.loads(schema1) 
-            f.close() 
         try:
             v = jsonschema.Draft4Validator(schema)
             for error in sorted(v.iter_errors(data), key=str):
@@ -285,6 +288,7 @@ class ResourceValidate(object):
         if self.verbose: 
             print('\n',schema)
             print('\n')
+        del schema
  
     def errHandle(self,msg,fname,schname=''):
         print ('>>> ',msg)
