@@ -259,7 +259,8 @@ class ResourceValidate(object):
             r = requests.get(self.orgurl + schname)
             if r.status_code != 200:
                 print ('SCHEMA GET ERROR', r.status_code)
-                return try:
+                return 
+            try:
                 schema = json.loads(r.text)
             except:
                 print('SCHEMA JSON invalid')
@@ -282,7 +283,7 @@ class ResourceValidate(object):
                 for item in self.excludes:
                     if item in error.message: x = True
                 if not x:
-                    self.errHandle(error.message,fname,schname)
+                    self.errHandle(error.message,fname,schname=schname)
         except jsonschema.ValidationError as e:
             print (e.message)
         if self.verbose: 
