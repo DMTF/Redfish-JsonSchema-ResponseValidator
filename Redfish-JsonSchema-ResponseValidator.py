@@ -227,10 +227,12 @@ class ResourceValidate(object):
             and validate against a DTMF schema.
         '''
         for dirn, subdir, filelist in  os.walk(self.mockdir):
+          print("dir",dirn,"subdir", subdir, "fs", filelist)
           for fname in filelist:
+            #print("filename:", fname)
             if fname == 'index.json':
               fname = dirn + '/' + fname
-              print(fname)
+              #print(fname)
               data = open(fname).read()
               if self.verbose: print(data)
               data = json.loads(data)
@@ -253,15 +255,19 @@ class ResourceValidate(object):
     def validate(self,data,schname,fname):
         ''' this sample from the jsonschema website
         '''
+        print("VALIDATING")
         if self.schemaorg:  # get schema from DMT.org
             r = requests.get(self.orgurl + schname)
             if r.status_code != 200:
                 print ('SCHEMA GET ERROR', r.status_code)
+                self.errHandle('ERROR3: Schema file not found at DMTF site-may be invalid version ',fname,schname)
                 return
             try:
                 schema = json.loads(r.text)
             except:
-                print('SCHEMA JSON invalid')
+                print("SCHEMA JSON invalid for {}".format(self.orgurl + schname ))
+                print("status code was: {}".format(r.status_code))
+                self.errHandle("ERROR4: error loading schema file ",fname,schname)
                 return
         else:
             try:
@@ -269,12 +275,16 @@ class ResourceValidate(object):
             except:
                 self.errHandle('ERROR2: schema not found',fname,schname)
                 return
+            print("...Reading schema: {}".format(schname))
             schema1 = f.read()
             schema = json.loads(schema1) 
+            print("...Got schema")
             f.close() 
         try:
             v = jsonschema.Draft4Validator(schema)
+            print("...Did schema validator")
             for error in sorted(v.iter_errors(data), key=str):
+                print("*** Validator ERROR")
                 x = False
                 for item in self.excludes:
                     if item in error.message: x = True
@@ -282,7 +292,9 @@ class ResourceValidate(object):
                     self.errHandle(error.message,fname,schname)
         except jsonschema.ValidationError as e:
             print (e.message)
+            self.errHandle("ERROR7: ValidationError: {}".format(e.message),fname,schname)
         if self.verbose: 
+            print("DID IT")
             print('\n',schema)
             print('\n')
  
@@ -291,6 +303,7 @@ class ResourceValidate(object):
         if not self.doerrs:
             outp = '\n\n' + fname + '\n  schema: ' + schname + '\n>>>' + msg
             self.ef.write(outp)
+            self.ef.flush()
         self.errcount += 1
 
     def subp (self,cmd):
