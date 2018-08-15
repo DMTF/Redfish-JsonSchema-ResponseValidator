@@ -113,8 +113,13 @@ class ResourceValidate(object):
         self.excludes = ''
         self.errcount = 0
         self.rescount = 0
+        self.retget = 0
+        self.retcache = 0
         self.savedata = ''
         parseArgs(self,argv)
+
+        self.cachelist = []
+        self.cachedict = {}
 
         self.orgurl = 'http://redfish.dmtf.org/schemas/v1/'
 
@@ -133,10 +138,12 @@ class ResourceValidate(object):
         else:
             self.traverseDir()        
 
-        print ('\n\n{} resources validated.'.format(self.rescount))
+        print ('\n{} resources validated.'.format(self.rescount))
         if self.errcount:
-            print ('\n{} errors. See {}'.format(self.errcount, self.errfile) )
-        print ('\n\n')
+            print ('{} errors. See {}'.format(self.errcount, self.errfile) )
+        else: print ('0 errors')
+        print ('schemas returned from GET  ',self.retget)
+        print ('schemas returned from cache',self.retcache)
 
     def doErrors(self):
         self.procerrs = []
@@ -166,8 +173,8 @@ class ResourceValidate(object):
         if self.verbose: print(ret)
         try:
             data = json.loads(ret)
-        except:
-            print('bad json data')
+        except Exception as e:
+            self.errHandle (str(e) + 'json load failed',self.url)
             return
         if '@odata.type' not in data:
             msg = 'ERROR1: Missing @odata.type '
@@ -204,8 +211,8 @@ class ResourceValidate(object):
                     print(data)
                     print('\n')
                 data = json.loads(data) 
-            except:
-                print('bad json data.')
+            except Exception as e:
+                self.errHandle (str(e) + 'json load failed',fname)
                 continue
             if '@odata.type' not in data:
                 if 'redfish/index.json' not in fname:
@@ -223,7 +230,7 @@ class ResourceValidate(object):
             self.validate(data,schname,fname)
 
     def traverseDir(self):
-        ''' walk a directory of resources 
+        ''' walk a directory of resources,i.e a "mockup" 
             and validate against a DTMF schema.
         '''
         for dirn, subdir, filelist in  os.walk(self.mockdir):
@@ -231,9 +238,19 @@ class ResourceValidate(object):
             if fname == 'index.json':
               fname = dirn + '/' + fname
               print(fname)
-              data = open(fname).read()
-              if self.verbose: print(data)
-              data = json.loads(data)
+              try:
+                f = open(fname,'r')
+                data = f.read()
+                f.close()
+                if self.verbose: print(data)
+              except:
+                self.errHandle ('failed to open and read',fname)
+                continue
+              try:
+                data = json.loads(data)
+              except Exception as e:
+                self.errHandle (str(e) + 'json load failed',fname)
+                continue
               if '@odata.type' not in data:
                 if 'redfish/index.json' not in fname:
                    if 'redfish/v1/odata/index.json' not in fname:
@@ -249,29 +266,81 @@ class ResourceValidate(object):
               self.rescount += 1
               self.validate(data,schname,fname)
 
+    def getFromOrg(self,schname):
+        ''' Fetch the schema from the redfish organization
+        '''
+        r = requests.get(self.orgurl + schname)
+        if r.status_code != 200:
+            self.errHandle('ERROR GET ERROR: schema not found',
+                            r.status_code,schname)
+            return -1
+        return r.text
+
+    def getFromLocal(self,schname):
+        ''' Fetch the schema from the local copy
+            of the redfish schemas
+        '''
+        try:
+            schfile = self.schemadir + '/' + schname
+            f = open(schfile)
+            data = f.read()
+            f.close()
+            return data
+        except:
+            self.errHandle('ERROR: schema not found',fname,schname)
+            return -1
+
+    def getorcache(self,schname,src):
+        ''' 1. check the cache to see if we already have it
+            2. if not, do a get from the schema org or local
+            3. store it in the cache
+        '''
+        if schname in self.cachedict:
+            self.retcache += 1
+            return self.cachedict[schname]
+        else:
+            if src == 'org':
+                data = self.getFromOrg(schname)
+                if data == -1: return -1
+            else:
+                if src == 'local':
+                    data = self.getFromLocal(schname)
+                    if data == -1: return -1
+            self.cachelist.append(schname)
+            if len(self.cachelist) > 20:
+                del self.cachedict[ self.cachelist[0] ]
+                self.cachelist.pop(0)
+            self.cachedict[schname] = data
+            self.retget += 1
+            return (data)
 
     def validate(self,data,schname,fname):
+        ''' Fetch the schema from either redfish.org
+            or local schemas, then validate
+        '''
+        # get schema from redfish.org
+        if self.schemaorg:  
+            datac = self.getorcache(schname,'org')
+            if datac == -1: return
+            try:
+                schema = json.loads(datac)
+            except Exception as e:
+                input ()
+                self.errHandle (str(e) + 'json load failed',schname)
+                return
+
+        # get schema from local mockup
+        else:               
+            datac = self.getorcache(schname,'local')
+            if datac == -1: return
+            try:
+                schema = json.loads(datac) 
+            except Exception as e:
+                self.errHandle (str(e) + 'json load failed',fname,schname)
+                return
+                
         ''' this sample from the jsonschema website
         '''
-        if self.schemaorg:  # get schema from DMT.org
-            r = requests.get(self.orgurl + schname)
-            if r.status_code != 200:
-                print ('SCHEMA GET ERROR', r.status_code)
-                return
-            try:
-                schema = json.loads(r.text)
-            except:
-                print('SCHEMA JSON invalid')
-                return
-        else:
-            try:
-                f = open(self.schemadir + '/' + schname,'r')
-            except:
-                self.errHandle('ERROR2: schema not found',fname,schname)
-                return
-            schema1 = f.read()
-            schema = json.loads(schema1) 
-            f.close() 
         try:
             v = jsonschema.Draft4Validator(schema)
             for error in sorted(v.iter_errors(data), key=str):
