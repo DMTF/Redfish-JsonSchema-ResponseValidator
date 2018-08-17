@@ -12,12 +12,12 @@ jsonschema -- pip(3) install jsonschema
 The purpose of this program is to validate
 redfish resources against DMTF json schemas.
 There are three ways to run this:
-1) against a directory of all 
+1) against a directory of all
      resources created by the mockup creator
 2) selecting individual resources from
-     that same directory 
+     that same directory
      ( the -f option )
-3) pulling a resource from an actual host 
+3) pulling a resource from an actual host
      of a redfish service.
      ( -r and -i options )
 
@@ -32,7 +32,7 @@ If you are running from a OS in which the
 #!/usr/bin/env bash
 cmd="/usr/bin/scl enable rh-python34"
 args="$@"
-$cmd "./resourceValidate.py $args " 
+$cmd "./resourceValidate.py $args "
 
 '''
 
@@ -44,20 +44,21 @@ import jsonschema
 import getopt
 import requests
 
+tool_version = '1.0.0'
 
 def usage():
-    print ('\nresourceValidate.py usage:')
-    print ('  -h   display usage and exit')  
-    print ('  -v   verbose')  
-    print ('  -m   directory path to a mockup tree to validate against, default ./mockup-sim-pull')  
-    print ('  -s   path to a local dir containing the json schema files to validate against, default ./DMTFSchemas')  
+    print ('\nRedfish-JsonSchema-ResponseValidator.py usage:')
+    print ('  -h   display usage and exit')
+    print ('  -v   verbose')
+    print ('  -m   directory path to a mockup tree to validate against, default ./mockup-sim-pull')
+    print ('  -s   path to a local dir containing the json schema files to validate against, default ./DMTFSchemas')
     print ('  -S   tell resourceValidate to get the schemaFiles from http://redfish.dmtf.org/schemas/v1/')
-    print ('  -u   user name, default root')  
-    print ('  -p   password, default calvin')  
-    print ('  -e   error output file, default ./validate_errs')  
-    print ('  -f   comma separated list of files to validate. if no -f, it validates entire mockup')  
+    print ('  -u   user name, default root')
+    print ('  -p   password, default calvin')
+    print ('  -e   error output file, default ./validate_errs')
+    print ('  -f   comma separated list of files to validate. if no -f, it validates entire mockup')
     print ('  -r   hostname or IP address [:portno], default None')
-    print ('  -i   url, --used with -r option to specify url for a live system. default /redfish/v1') 
+    print ('  -i   url, --used with -r option to specify url for a live system. default /redfish/v1')
     print ('  -x   comma separated list of patterns to exclude from errors') 
     print ('  -g   validate only resources which failed a previous run')
     print ('\n')
@@ -136,7 +137,7 @@ class ResourceValidate(object):
         elif self.files:
             self.traverseFiles()
         else:
-            self.traverseDir()        
+            self.traverseDir()
 
         print ('\n{} resources validated.'.format(self.rescount))
         if self.errcount:
@@ -158,7 +159,6 @@ class ResourceValidate(object):
                 line = line.replace('/index.json','')
                 self.files += line + ','
         self.traverseFiles()
-        
 
     def valFromHost(self):
         ''' GET one resource from a host (rackmanager?)
@@ -188,7 +188,6 @@ class ResourceValidate(object):
         schname += '.json'
         self.rescount += 1
         self.validate(data,schname,self.url)
-
 
     def traverseFiles(self):
         ''' read a list of resources specified
@@ -230,7 +229,7 @@ class ResourceValidate(object):
             self.validate(data,schname,fname)
 
     def traverseDir(self):
-        ''' walk a directory of resources,i.e a "mockup" 
+        ''' walk a directory of resources,i.e a "mockup"
             and validate against a DTMF schema.
         '''
         for dirn, subdir, filelist in  os.walk(self.mockdir):
@@ -390,7 +389,7 @@ class ResourceValidate(object):
             return(None,None,None)
 
         resourceOdataType=resource["@odata.type"]
-    
+
         #the odataType format is:  <namespace>.<version>.<type>   where version may have periods in it 
         odataTypeMatch = re.compile('^#([a-zA-Z0-9]*)\.([a-zA-Z0-9\._]*)\.([a-zA-Z0-9]*)$')  
         resourceMatch = re.match(odataTypeMatch, resourceOdataType)
@@ -413,6 +412,5 @@ class ResourceValidate(object):
         return(namespace, version, resourceType)
 
 if __name__ == '__main__':
+    print( "Redfish-JsonSchema-ResponseValidator version {}".format( tool_version ) )
     rv = ResourceValidate(sys.argv)
-
-

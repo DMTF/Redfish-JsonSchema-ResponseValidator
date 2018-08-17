@@ -1,10 +1,10 @@
-# Redfish-JsonSchema-ResponseValidator 
+Copyright 2017-2018 DMTF. All rights reserved.
 
-Copyright 2017 Distributed Management Task Force, Inc. All rights reserved.
+# Redfish-JsonSchema-ResponseValidator 
 
 ## About
 
-***Redfish-JsonSchema-ResponseValidator.py*** is a Python3 utility used to validate any JSON resource against DMTF provided JSON schemas
+***Redfish-JsonSchema-ResponseValidator.py*** is a Python3 utility used to validate any JSON resource against DMTF provided JSON schemas.
 
 ### To run:
 
@@ -44,7 +44,6 @@ NOTE: if -v is specified, resource JSON will be
 NOTE: if -g is specified, input files will be the files
        found in a previous error file. If used with -v,
        the output will include the resource JSON and the Schema
-
 ```
 
 ## Installation, Path, and Dependencies:
@@ -77,8 +76,6 @@ Redfish-JsonSchema-ResponseValidator.py -g -v [-e errorfile] > saveout
        saves the standard out to be examined with an editor
 
 NOTE: here is a shortcut bash script
-
-
 ```
 
 ## Known Issues
