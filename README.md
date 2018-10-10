@@ -35,6 +35,7 @@ Redfish-JsonSchema-ResponseValidator.py usage:
 -i   url  --used with -r option to specify the url to test, default /redfish/v1
 -x   comma separated list of patterns to exclude from errors
 -g   validate only resources which failed a previous run
+-l   a local json file to validate
 NOTE: if -r is specified, this will validate 
        one resource (rest API) from a host
 NOTE: if -f is specified, this will validate individual
@@ -74,6 +75,9 @@ Redfish-JsonSchema-ResponseValidator.py -g -v [-e errorfile] > saveout
     -- validates the resources for a previous error file (-g)
        includes in the output the json resource and the json schema
        saves the standard out to be examined with an editor
+
+Redfish-JsonSchema-ResponseValidator.py -l LocalResourceFile -S
+    -- validates the lcoal resources file with the schema from http://redfish.dmtf.org/schemas/v1/
 
 NOTE: here is a shortcut bash script
 ```
