@@ -61,6 +61,7 @@ def usage():
     print ('  -i   url, --used with -r option to specify url for a live system. default /redfish/v1')
     print ('  -x   comma separated list of patterns to exclude from errors') 
     print ('  -g   validate only resources which failed a previous run')
+    print ('  -l   a local json file to validate')
     print ('\n')
     print ('NOTE: if -r is specified, this will validate ')
     print ('         one resource (rest API) from a host')
@@ -77,7 +78,7 @@ def usage():
 def parseArgs(rv,argv):
     # parse args
     try:
-        opts, args = getopt.gnu_getopt(argv[1:],"hvgSm:s:u:p:e:f:r:i:x:")
+        opts, args = getopt.gnu_getopt(argv[1:],"hvgSm:s:u:p:e:f:r:i:x:l:")
     except getopt.GetoptError:
         print("Error parsing options")
         usage()
@@ -96,6 +97,7 @@ def parseArgs(rv,argv):
         elif opt in ('-i'): rv.url = arg
         elif opt in ('-x'): rv.excludes = arg
         elif opt in ('-g'): rv.doerrs = True
+        elif opt in ('-l'): rv.file = arg
 
 
 class ResourceValidate(object):
@@ -117,6 +119,7 @@ class ResourceValidate(object):
         self.retget = 0
         self.retcache = 0
         self.savedata = ''
+        self.file = ''
         parseArgs(self,argv)
 
         self.cachelist = []
@@ -134,6 +137,8 @@ class ResourceValidate(object):
             self.doErrors()
         elif  self.ipaddr:
             self.valFromHost()
+        elif self.file:
+            self.localFile()
         elif self.files:
             self.traverseFiles()
         else:
@@ -188,6 +193,41 @@ class ResourceValidate(object):
         schname += '.json'
         self.rescount += 1
         self.validate(data,schname,self.url)
+
+    def localFile(self):
+        ''' read a resources specified
+            with the -l option,
+            and validate against a DTMF schema.
+        '''
+        try:    
+            print ('\n' + self.file)
+            f = open(self.file,'r')
+        except:
+            print(self.file + ' not found')
+            return
+        try:
+            data = f.read()
+            if self.verbose: 
+                print(data)
+                print('\n')
+            data = json.loads(data) 
+        except Exception as e:
+            self.errHandle (str(e) + ' load failed',self.file)
+            return
+        if '@odata.type' not in data:
+            if 'redfish/index.json' not in fname:
+               if 'redfish/v1/odata/index.json' not in self.file:
+                   msg = 'ERROR1: Missing @odata.type '
+                   self.errHandle(msg,self.file)
+        schname = self.parseOdataType(data)
+        if schname[1]:
+            schname = '.'.join(schname[:2])
+        else:
+            schname = schname[0] 
+        schname += '.json'
+        print ('JSON schema name is {}'.format(schname))
+        self.rescount += 1
+        self.validate(data,schname,self.file)
 
     def traverseFiles(self):
         ''' read a list of resources specified
