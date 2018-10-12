@@ -87,6 +87,13 @@ NOTE: here is a shortcut bash script
 * filter tests to not try to validate /redfish   (the version response) since it does not contain an @odata.id prop
 * filter tests to not try to validate /redfish/v1/odata/index.json  (the Odata Service Doc) since it does not have an @odata.id prop
 
+## Release Process
+
+1. Update `CHANGELOG.md` with the list of changes since the last release
+2. Update the `tool_version` variable in `Redfish-JsonSchema-ResponseValidator.py` to reflect the new tool version
+3. Push changes to Github
+4. Create a new release in Github
+
 ## See Also:
 
 * Redfish-Mockup-Creator

@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # Copyright Notice:
-# Copyright 2017 Distributed Management Task Force, Inc. All rights reserved.
+# Copyright 2017 DMTF. All rights reserved.
 # License: BSD 3-Clause License. For full text see link: https://github.com/DMTF/Redfish-JsonSchema-ResponseValidator/blob/master/LICENSE.md
 
 '''
@@ -44,7 +44,7 @@ import jsonschema
 import getopt
 import requests
 
-tool_version = '1.0.0'
+tool_version = '1.0.1'
 
 def usage():
     print ('\nRedfish-JsonSchema-ResponseValidator.py usage:')
