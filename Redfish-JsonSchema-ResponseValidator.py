@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # Copyright Notice:
 # Copyright 2017 DMTF. All rights reserved.
-# License: BSD 3-Clause License. For full text see link: https://github.com/DMTF/Redfish-JsonSchema-ResponseValidator/blob/master/LICENSE.md
+# License: BSD 3-Clause License. For full text see link: https://github.com/DMTF/Redfish-JsonSchema-ResponseValidator/blob/main/LICENSE.md
 
 '''
 python34 resourceValidate.py [args]
