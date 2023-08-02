@@ -167,7 +167,7 @@ class ResourceValidate(object):
 
     def valFromHost(self):
         ''' GET one resource from a host (rackmanager?)
-            and validate against a DTMF schema.
+            and validate against a DMTF schema.
         '''
         print( self.ipaddr + ':' + self.url )
         ret = self.get(self.ipaddr,self.url,self.user,self.password)
@@ -197,7 +197,7 @@ class ResourceValidate(object):
     def localFile(self):
         ''' read a resources specified
             with the -l option,
-            and validate against a DTMF schema.
+            and validate against a DMTF schema.
         '''
         try:    
             print ('\n' + self.file)
@@ -232,7 +232,7 @@ class ResourceValidate(object):
     def traverseFiles(self):
         ''' read a list of resources specified
             with the -f option,
-            and validate against a DTMF schema.
+            and validate against a DMTF schema.
         '''
         files = self.files.split(',')
         files = list(set(files))
@@ -253,6 +253,9 @@ class ResourceValidate(object):
             except Exception as e:
                 self.errHandle (str(e) + 'json load failed',fname)
                 continue
+            if '$schema' in data:
+                # Schema file; skip
+                continue
             if '@odata.type' not in data:
                 if 'redfish/index.json' not in fname:
                    if 'redfish/v1/odata/index.json' not in fname:
@@ -270,7 +273,7 @@ class ResourceValidate(object):
 
     def traverseDir(self):
         ''' walk a directory of resources,i.e a "mockup"
-            and validate against a DTMF schema.
+            and validate against a DMTF schema.
         '''
         for dirn, subdir, filelist in  os.walk(self.mockdir):
           for fname in filelist:
@@ -289,6 +292,9 @@ class ResourceValidate(object):
                 data = json.loads(data)
               except Exception as e:
                 self.errHandle (str(e) + 'json load failed',fname)
+                continue
+              if '$schema' in data:
+                # Schema file; skip
                 continue
               if '@odata.type' not in data:
                 if 'redfish/index.json' not in fname:
