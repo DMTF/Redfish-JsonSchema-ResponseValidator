@@ -44,7 +44,7 @@ import jsonschema
 import getopt
 import requests
 
-tool_version = '1.0.1'
+tool_version = '1.0.2'
 
 def usage():
     print ('\nRedfish-JsonSchema-ResponseValidator.py usage:')
