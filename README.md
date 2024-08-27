@@ -2,6 +2,10 @@ Copyright 2017-2018 DMTF. All rights reserved.
 
 # Redfish-JsonSchema-ResponseValidator 
 
+## Deprecated
+
+This tool is deprecated in favor of response payload validation performed by the [Redfish-Service-Validator](https://github.com/DMTF/Redfish-Service-Validator).
+
 ## About
 
 ***Redfish-JsonSchema-ResponseValidator.py*** is a Python3 utility used to validate any JSON resource against DMTF provided JSON schemas.
